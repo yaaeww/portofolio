@@ -487,7 +487,7 @@ export default function CVSection() {
               </motion.h3>
               <motion.p
                 variants={textItem}
-                className="mt-3 leading-relaxed text-slate-600"
+                className="mt-3 leading-relaxed text-slate-600 whitespace-pre-line"
               >
                 {cvData.summary}
               </motion.p>
@@ -496,9 +496,31 @@ export default function CVSection() {
 
           <motion.div
             variants={item}
-            className="flex items-center rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7"
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7"
           >
             <NowPlaying />
+            <div className="mt-5 border-t border-black/5 pt-5">
+              <h4 className="text-sm font-bold text-slate-900">Education</h4>
+              <div className="mt-3 space-y-3">
+                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
+                  <p className="text-sm font-semibold text-slate-800">Politeknik Negeri Indramayu</p>
+                  <p className="text-xs text-slate-500">S1 Terapan Rekayasa Perangkat Lunak</p>
+                  <p className="mt-1 text-[11px] text-slate-400">2023 — 2027</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
+                  <p className="text-sm font-semibold text-slate-800">SDN Jatisawit Lor 3</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">2010 — 2016</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
+                  <p className="text-sm font-semibold text-slate-800">SMPN 3 Jatibarang</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">2016 — 2019</p>
+                </div>
+                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
+                  <p className="text-sm font-semibold text-slate-800">SMK PONPES CadangPinggan</p>
+                  <p className="mt-0.5 text-[11px] text-slate-400">2019 — 2022</p>
+                </div>
+              </div>
+            </div>
           </motion.div>
 
           <motion.div
