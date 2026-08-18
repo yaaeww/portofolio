@@ -264,6 +264,64 @@ export default function CVSection() {
           </motion.div>
         </div>
 
+        {/* ── Data Diri + Lokasi ── */}
+        <div id="personal" className="mt-14 grid gap-5 sm:gap-6 md:grid-cols-2 sm:mt-16">
+          <motion.div
+            variants={item}
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7"
+          >
+            <motion.div variants={textContainer}>
+              <motion.h3
+                variants={textItem}
+                className="text-lg font-bold text-slate-900 dark:text-white"
+              >
+                Data Diri
+              </motion.h3>
+              <div className="mt-4 space-y-3">
+                {[
+                  { label: "Tempat, Tanggal Lahir", value: `${cvData.personalInfo.birthPlace}, ${cvData.personalInfo.birthDate}` },
+                  { label: "Alamat", value: cvData.personalInfo.address },
+                  { label: "Tinggi Badan", value: cvData.personalInfo.height },
+                  { label: "Berat Badan", value: cvData.personalInfo.weight },
+                  { label: "Hobi", value: cvData.personalInfo.hobbies.join(", ") },
+                  { label: "Status", value: cvData.personalInfo.maritalStatus },
+                ].map((item) => (
+                  <motion.div key={item.label} variants={textItem} className="flex flex-col gap-0.5">
+                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500">{item.label}</span>
+                    <span className="text-sm text-slate-800 dark:text-slate-200">{item.value}</span>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            variants={item}
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7"
+          >
+            <motion.div variants={textContainer}>
+              <motion.h3
+                variants={textItem}
+                className="text-lg font-bold text-slate-900 dark:text-white"
+              >
+                Lokasi
+              </motion.h3>
+              <motion.div variants={textItem} className="mt-4 overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10">
+                <iframe
+                  src={cvData.personalInfo.mapEmbedSrc}
+                  width="100%"
+                  height="280"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  className="w-full"
+                />
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        </div>
+
         {/* ── Projects (Case Study Accordion) ── */}
         <div id="projects">
           <motion.div
@@ -366,6 +424,19 @@ export default function CVSection() {
                   </motion.li>
                 ))}
               </ul>
+              {cvData.experience.images && cvData.experience.images.length > 0 && (
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {cvData.experience.images.map((src) => (
+                    <img
+                      key={src}
+                      src={src}
+                      alt={`${cvData.experience.company} evidence`}
+                      className="h-24 w-full rounded-md object-cover ring-1 ring-black/10 dark:ring-white/10"
+                      loading="lazy"
+                    />
+                  ))}
+                </div>
+              )}
             </motion.div>
           </motion.div>
 
@@ -417,6 +488,19 @@ export default function CVSection() {
                         {org.description}
                       </p>
                     ) : null}
+                    {org.images && org.images.length > 0 && (
+                      <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 gap-2">
+                        {org.images.map((src) => (
+                          <img
+                            key={src}
+                            src={src}
+                            alt={`${org.role} evidence`}
+                            className="h-16 w-full rounded-md object-cover ring-1 ring-black/10 dark:ring-white/10"
+                            loading="lazy"
+                          />
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </motion.div>

@@ -27,6 +27,7 @@ export type Experience = {
   company: string;
   duration: string;
   points: string[];
+  images?: string[];
 };
 
 export type FeaturedSkill = {
@@ -41,12 +42,24 @@ export type Organization = {
   organization: string;
   duration: string;
   description?: string;
+  images?: string[];
 };
 
 export type Education = {
   school: string;
   degree?: string;
   year: string;
+};
+
+export type PersonalInfo = {
+  birthPlace: string;
+  birthDate: string;
+  address: string;
+  height: string;
+  weight: string;
+  hobbies: string[];
+  maritalStatus: string;
+  mapEmbedSrc: string;
 };
 
 export type CVData = {
@@ -66,6 +79,7 @@ export type CVData = {
   experience: Experience;
   organizations: Organization[];
   education: Education[];
+  personalInfo: PersonalInfo;
 };
 
 export const cvData: CVData = {
@@ -621,6 +635,10 @@ export const cvData: CVData = {
       "Optimized API response times through Redis caching layer and PostgreSQL query optimization",
       "Collaborated across React frontend and Go backend teams in a cross-functional engineering environment",
     ],
+    images: [
+      "/pengalaman/adt-intern.webp",
+      "/pengalaman/adt-intrn.webp",
+    ],
   },
   organizations: [
     {
@@ -630,18 +648,39 @@ export const cvData: CVData = {
       duration: "Jun 2025 · 1 month",
       description:
         "Led the P3M community program as Head Organizer, coordinating logistics, volunteers, and event execution for student-led community service.",
+      images: [
+        "/organisasi/p3m-01.webp",
+        "/organisasi/p3m-02.webp",
+      ],
     },
     {
       role: "External Relations Secretary",
       organization:
         "HIMARPL — Himpunan Mahasiswa Program Studi Rekayasa Perangkat Lunak, Politeknik Negeri Indramayu",
       duration: "Oct 2024 – Feb 2025",
+      images: [
+        "/organisasi/sekertarishima.webp",
+        "/organisasi/sekretaris-01.webp",
+        "/organisasi/sekretaris-02.webp",
+        "/organisasi/sekretaris-03.webp",
+        "/organisasi/sekretaris-04.webp",
+        "/organisasi/sekretaris-05.webp",
+        "/organisasi/sekretaris-06.webp",
+        "/organisasi/sekretaris-07.webp",
+        "/organisasi/sekretaris-08.webp",
+        "/organisasi/sekretaris-09.webp",
+        "/organisasi/sekretaris-10.webp",
+        "/organisasi/sekretaris-11.webp",
+      ],
     },
     {
       role: "Junior Staff — Internal Relations",
       organization:
         "BEM Politeknik Negeri Indramayu, Kabinet Narayana",
       duration: "Jun 2023 – Jun 2024",
+      images: [
+        "/organisasi/stafbem.webp",
+      ],
     },
   ],
   education: [
@@ -663,4 +702,15 @@ export const cvData: CVData = {
       year: "2010 – 2016",
     },
   ],
+  personalInfo: {
+    birthPlace: "Indramayu",
+    birthDate: "20 Juni 2004",
+    address: "Bojongslawi, Indramayu, Jawa Barat 45252",
+    height: "174 cm",
+    weight: "65 kg",
+    hobbies: ["Bermain musik", "Olahraga"],
+    maritalStatus: "Belum menikah",
+    mapEmbedSrc:
+      "https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d3964.778061439076!2d108.28970707413407!3d-6.422555662806893!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMjUnMjEuMiJTIDEwOMKwMTcnMzIuMiJF!5e0!3m2!1sid!2sid!4v1787078396297!5m2!1sid!2sid",
+  },
 };
