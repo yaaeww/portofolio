@@ -1,7 +1,7 @@
 const MUTED_KEY = "portfolio-sound-muted";
 
 const FRAME_SOUNDS = [
-  "/audio/areyouredy.wav",
+  "/audio/areyouredy.mp3",
   "/audio/whosh.mp3",
   "/audio/hammer.mp3",
   "/audio/rock_break.mp3",

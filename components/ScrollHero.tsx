@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 const FRAMES = 5;
 const FRAME_SRC = Array.from(
   { length: FRAMES },
-  (_, i) => `/assets/frame_0${i + 1}.jpg`,
+  (_, i) => `/assets/frame_0${i + 1}.webp`,
 );
 
 export default function ScrollHero() {
@@ -26,6 +26,15 @@ export default function ScrollHero() {
     const section = sectionRef.current;
     const wrapper = wrapperRef.current;
     if (!section || !wrapper) return;
+
+    const handleSoundToggle = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { muted: boolean };
+      if (detail.muted) {
+        stopAllSounds();
+        lastSoundFrame.current = -1;
+      }
+    };
+    window.addEventListener("sound-toggle", handleSoundToggle);
 
     const ctx = gsap.context(() => {
       const frameEls = gsap.utils.toArray<HTMLElement>(".seq-frame");
@@ -123,6 +132,7 @@ export default function ScrollHero() {
     }, wrapper);
 
     return () => {
+      window.removeEventListener("sound-toggle", handleSoundToggle);
       stopAllSounds();
       ctx.revert();
     };
@@ -133,17 +143,17 @@ export default function ScrollHero() {
   };
 
   const goToCv = () => {
-    document.getElementById("cv")?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("projects")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <div ref={wrapperRef}>
       {/* ── Scroll-driven image animation (pinned) ── */}
       <section ref={sectionRef} className="relative h-[300vh]">
-        <div className="hero-panel flex h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-slate-100 via-white to-slate-50">
+        <div className="hero-panel flex h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-slate-100 via-white to-slate-50 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
           <div className="relative w-full max-w-[540px] px-4 sm:max-w-4xl">
             <div
-              className="relative w-full overflow-hidden rounded-3xl shadow-2xl ring-1 ring-black/5"
+              className="relative w-full overflow-hidden rounded-3xl shadow-2xl ring-1 ring-black/5 dark:ring-white/10"
               style={{ aspectRatio: "1521 / 704" }}
             >
               {FRAME_SRC.map((src, i) => (
@@ -170,7 +180,7 @@ export default function ScrollHero() {
                 <span
                   key={i}
                   className={`h-2 rounded-full transition-all duration-300 ${
-                    i === activeFrame ? "w-8 bg-slate-800" : "w-2 bg-slate-300"
+                    i === activeFrame ? "w-8 bg-slate-800 dark:bg-slate-200" : "w-2 bg-slate-300 dark:bg-slate-600"
                   }`}
                 />
               ))}
@@ -188,12 +198,12 @@ export default function ScrollHero() {
       </section>
 
       {/* ── CV Introduction Card (separate section, normal flow) ── */}
-      <section className="bg-gradient-to-b from-slate-50 via-white to-slate-50 py-12 sm:py-16">
-        <div className="cv-card mx-auto w-[min(92%,640px)] rounded-2xl bg-white/85 p-4 shadow-2xl ring-1 ring-black/5 backdrop-blur-md sm:p-7">
+      <section className="bg-gradient-to-b from-slate-50 via-white to-slate-50 py-12 sm:py-16 dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
+        <div className="cv-card mx-auto w-[min(92%,640px)] rounded-2xl bg-white/85 p-4 shadow-2xl ring-1 ring-black/5 backdrop-blur-md dark:bg-slate-900/85 dark:ring-white/10 sm:p-7">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-center sm:gap-5">
-            <div className="cv-photo relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl shadow-lg ring-2 ring-white sm:h-28 sm:w-28">
+            <div className="cv-photo relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl shadow-lg ring-2 ring-white dark:ring-slate-700 sm:h-28 sm:w-28">
               <Image
-                src="/assets/image.png"
+                src="/assets/image.webp"
                 alt={cvData.name}
                 fill
                 sizes="112px"
@@ -204,17 +214,17 @@ export default function ScrollHero() {
               <p className="cv-label text-[10px] font-semibold uppercase tracking-widest text-indigo-600 sm:text-xs">
                 Hello, I am
               </p>
-              <h1 className="cv-name mt-1 break-words text-[clamp(1.15rem,4.6vw,1.875rem)] font-bold leading-tight text-slate-900">
+              <h1 className="cv-name mt-1 break-words text-[clamp(1.15rem,4.6vw,1.875rem)] font-bold leading-tight text-slate-900 dark:text-white">
                 {cvData.name}
               </h1>
-              <p className="cv-sub mt-1 text-[clamp(0.8rem,2.6vw,1rem)] font-medium text-slate-600">
+              <p className="cv-sub mt-1 text-[clamp(0.8rem,2.6vw,1rem)] font-medium text-slate-600 dark:text-slate-400">
                 {cvData.title}
               </p>
               <div className="mt-3 flex flex-wrap justify-center gap-1.5 sm:mt-4 sm:justify-start sm:gap-2">
                 {cvData.skills.map((skill) => (
                   <span
                     key={skill}
-                    className="cv-badge rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-indigo-700 ring-1 ring-indigo-100 sm:px-3 sm:text-xs"
+                    className="cv-badge rounded-full bg-indigo-50 px-2.5 py-1 text-[11px] font-medium text-indigo-700 ring-1 ring-indigo-100 dark:bg-indigo-950 dark:text-indigo-300 dark:ring-indigo-800 sm:px-3 sm:text-xs"
                   >
                     {skill}
                   </span>
@@ -223,29 +233,36 @@ export default function ScrollHero() {
             </div>
           </div>
           <div className="cv-actions mt-4 flex flex-col gap-2.5 sm:mt-5 sm:flex-row sm:justify-center sm:gap-3">
+            <a
+              href="/cv/muhammad-ihya-ulumuddin-cv.pdf"
+              download
+              className="w-full rounded-xl bg-slate-900 px-5 py-2.5 text-center text-sm font-semibold text-white transition-colors hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 sm:w-auto sm:px-6 sm:py-2.5"
+            >
+              Download CV ↓
+            </a>
             <button
               onClick={goToCv}
-              className="w-full rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-slate-700 sm:w-auto sm:px-6 sm:py-2.5"
+              className="w-full rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:w-auto sm:px-6 sm:py-2.5"
             >
-              View Full CV
+              Read Case Studies
             </button>
             <button
               onClick={replay}
-              className="w-full rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 sm:w-auto sm:px-6 sm:py-2.5"
+              className="w-full rounded-xl border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:w-auto sm:px-6 sm:py-2.5"
             >
-              ↻ Replay Animation
+              ↻ Replay
             </button>
           </div>
-          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-black/5 pt-4 text-sm text-slate-500">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 border-t border-black/5 pt-4 text-sm text-slate-500 dark:border-white/10 dark:text-slate-400">
             <a
-              className="inline-flex items-center gap-1.5 hover:text-slate-800"
+              className="inline-flex items-center gap-1.5 hover:text-slate-800 dark:hover:text-slate-200"
               href={`mailto:${cvData.email}`}
             >
               <MailIcon className="h-4 w-4" />
               {cvData.email}
             </a>
             <a
-              className="inline-flex items-center gap-1.5 hover:text-slate-800"
+              className="inline-flex items-center gap-1.5 hover:text-slate-800 dark:hover:text-slate-200"
               href={cvData.github}
               target="_blank"
               rel="noreferrer"
@@ -254,7 +271,7 @@ export default function ScrollHero() {
               GitHub
             </a>
             <a
-              className="inline-flex items-center gap-1.5 hover:text-slate-800"
+              className="inline-flex items-center gap-1.5 hover:text-slate-800 dark:hover:text-slate-200"
               href={cvData.linkedin}
               target="_blank"
               rel="noreferrer"
@@ -263,7 +280,7 @@ export default function ScrollHero() {
               LinkedIn
             </a>
             <a
-              className="inline-flex items-center gap-1.5 hover:text-slate-800"
+              className="inline-flex items-center gap-1.5 hover:text-slate-800 dark:hover:text-slate-200"
               href="https://www.instagram.com/yaaewww_?igsh=MXJwdzZxbGxxaTlhbQ%3D%3D&utm_source=qr"
               target="_blank"
               rel="noreferrer"

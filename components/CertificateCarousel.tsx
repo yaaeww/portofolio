@@ -74,21 +74,21 @@ export default function CertificateCarousel() {
   return (
     <div>
       <div className="mb-5 flex items-center justify-between gap-4">
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           {cvData.certificates.length} certificates — swipe or use the arrows
         </p>
         <div className="flex gap-2">
           <button
             onClick={scrollPrev}
             aria-label="Previous certificates"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition-colors hover:bg-slate-100"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             ←
           </button>
           <button
             onClick={scrollNext}
             aria-label="Next certificates"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition-colors hover:bg-slate-100"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             →
           </button>
@@ -102,7 +102,7 @@ export default function CertificateCarousel() {
               key={cert.title}
               className="min-w-0 flex-[0_0_100%] pl-3 first:pl-0 sm:flex-[0_0_50%] sm:pl-4 lg:flex-[0_0_33.333%]"
             >
-              <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md">
+              <div className="flex h-full flex-col overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-md dark:bg-slate-900 dark:ring-white/10">
                 <div className="relative aspect-video w-full shrink-0">
                   {cert.image ? (
                     <Image
@@ -113,18 +113,18 @@ export default function CertificateCarousel() {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-medium text-slate-400">
+                    <div className="flex h-full w-full items-center justify-center bg-slate-100 text-xs font-medium text-slate-400 dark:bg-slate-800">
                       Certificate image coming soon
                     </div>
                   )}
                 </div>
                 <div className="flex flex-1 flex-col justify-between gap-3 p-5 sm:p-6">
-                  <h4 className="text-base font-bold leading-snug text-slate-900 line-clamp-2">
+                  <h4 className="text-base font-bold leading-snug text-slate-900 line-clamp-2 dark:text-white">
                     {cert.title}
                   </h4>
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-sm text-slate-500">{cert.issuer}</p>
-                    <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{cert.issuer}</p>
+                    <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                       {cert.year}
                     </span>
                   </div>
@@ -135,7 +135,7 @@ export default function CertificateCarousel() {
         </div>
       </div>
 
-      <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200">
+      <div className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
         <div
           className="h-full rounded-full bg-indigo-500 transition-[width] duration-300 ease-out"
           style={{ width: `${Math.max(progress * 100, 4)}%` }}

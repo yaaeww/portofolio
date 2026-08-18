@@ -1,10 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { toggleMute } from "@/lib/sound";
+import { useState, useEffect } from "react";
+import { toggleMute, isMuted } from "@/lib/sound";
 
 export default function SoundToggle() {
   const [muted, setMuted] = useState(true);
+
+  useEffect(() => {
+    setMuted(isMuted());
+  }, []);
+
+  useEffect(() => {
+    const handleSoundToggle = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { muted: boolean };
+      setMuted(detail.muted);
+    };
+    window.addEventListener("sound-toggle", handleSoundToggle);
+    return () => window.removeEventListener("sound-toggle", handleSoundToggle);
+  }, []);
 
   const handleToggle = () => {
     const nowMuted = toggleMute();
@@ -19,7 +32,7 @@ export default function SoundToggle() {
       type="button"
       onClick={handleToggle}
       aria-label={muted ? "Unmute sound effects" : "Mute sound effects"}
-      className="fixed bottom-5 right-5 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md ring-1 ring-black/10 backdrop-blur-sm transition-all hover:bg-white hover:shadow-lg"
+      className="fixed bottom-5 right-5 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-white/80 shadow-md ring-1 ring-black/10 backdrop-blur-sm transition-all hover:bg-white hover:shadow-lg dark:bg-slate-800/80 dark:ring-white/10 dark:hover:bg-slate-700"
       title={muted ? "Unmute suara" : "Mute suara"}
     >
       {muted ? (

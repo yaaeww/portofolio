@@ -1,11 +1,8 @@
 "use client";
 
-import Image from "next/image";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { motion, type Variants } from "framer-motion";
-import type { ComponentType } from "react";
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 import { cvData } from "@/data/cv";
-import { isMuted } from "@/lib/sound";
 import CertificateCarousel from "@/components/CertificateCarousel";
 import {
   LinkedInIcon,
@@ -21,198 +18,7 @@ import {
 } from "@/components/icons";
 import type { FeaturedSkill, Project } from "@/data/cv";
 
-function NowPlaying() {
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const rafRef = useRef<number>(0);
-  const projectsVisible = useRef(false);
-
-  useEffect(() => {
-    const audio = new Audio(
-      "/audio/musicplay.mp3",
-    );
-    audio.preload = "metadata";
-    audio.loop = false;
-    audioRef.current = audio;
-
-    const tick = () => {
-      if (audio.duration) {
-        setProgress(audio.currentTime / audio.duration);
-      }
-      rafRef.current = requestAnimationFrame(tick);
-    };
-
-    const onPlay = () => {
-      setPlaying(true);
-      rafRef.current = requestAnimationFrame(tick);
-    };
-    const onPause = () => {
-      setPlaying(false);
-      cancelAnimationFrame(rafRef.current);
-    };
-    const onEnded = () => {
-      setProgress(0);
-      cancelAnimationFrame(rafRef.current);
-      if (projectsVisible.current && !isMuted()) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      } else {
-        setPlaying(false);
-      }
-    };
-
-    audio.addEventListener("play", onPlay);
-    audio.addEventListener("pause", onPause);
-    audio.addEventListener("ended", onEnded);
-
-    const handleProjectsVisible = () => {
-      projectsVisible.current = true;
-      if (!isMuted() && audio.paused) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      }
-    };
-    const handleProjectsHidden = () => {
-      projectsVisible.current = false;
-    };
-    const handleFrameSound = () => {
-      if (!audio.paused) {
-        audio.pause();
-      }
-      audio.currentTime = 0;
-      setProgress(0);
-    };
-    const handleCertStart = () => {
-      if (!audio.paused) {
-        audio.pause();
-      }
-      audio.currentTime = 0;
-      setProgress(0);
-    };
-    const handleMuteToggle = () => {
-      if (isMuted()) {
-        audio.pause();
-      } else if (projectsVisible.current) {
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      }
-    };
-
-    window.addEventListener("projects-visible", handleProjectsVisible);
-    window.addEventListener("projects-hidden", handleProjectsHidden);
-    window.addEventListener("frame-sound", handleFrameSound);
-    window.addEventListener("cert-audio-start", handleCertStart);
-    window.addEventListener("sound-toggle", handleMuteToggle);
-
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      audio.removeEventListener("play", onPlay);
-      audio.removeEventListener("pause", onPause);
-      audio.removeEventListener("ended", onEnded);
-      audio.pause();
-      audio.src = "";
-      window.removeEventListener("projects-visible", handleProjectsVisible);
-      window.removeEventListener("projects-hidden", handleProjectsHidden);
-      window.removeEventListener("frame-sound", handleFrameSound);
-      window.removeEventListener("cert-audio-start", handleCertStart);
-      window.removeEventListener("sound-toggle", handleMuteToggle);
-    };
-  }, []);
-
-  const toggle = useCallback(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (playing) {
-      audio.pause();
-    } else {
-      audio.play().catch(() => {});
-    }
-  }, [playing]);
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-4">
-        <div className="relative shrink-0">
-          <div
-            className={`h-16 w-16 overflow-hidden rounded-full ring-2 ring-slate-200 ${playing ? "animate-[spin_3s_linear_infinite]" : ""}`}
-          >
-            <Image
-              src="/assets/lagu.jpg"
-              alt="Radiohead - Creep"
-              width={64}
-              height={64}
-              className="h-full w-full object-cover"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={toggle}
-            aria-label={playing ? "Pause" : "Play"}
-            className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full bg-slate-900 text-white shadow-md transition-transform hover:scale-110"
-          >
-            {playing ? (
-              <svg className="h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <rect x="6" y="4" width="4" height="16" rx="1" />
-                <rect x="14" y="4" width="4" height="16" rx="1" />
-              </svg>
-            ) : (
-              <svg className="ml-0.5 h-3 w-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                <polygon points="5,3 19,12 5,21" />
-              </svg>
-            )}
-          </button>
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-slate-900">Creep</p>
-          <p className="truncate text-xs text-slate-500">Radiohead</p>
-          <div className="mt-2 h-1 w-full overflow-hidden rounded-full bg-slate-200">
-            <div
-              className="h-full rounded-full bg-slate-900 transition-[width] duration-100"
-              style={{ width: `${progress * 100}%` }}
-            />
-          </div>
-        </div>
-      </div>
-      <p className="text-xl font-black tracking-tight text-slate-900 select-none">
-        are u ok ??
-      </p>
-    </div>
-  );
-}
-
-const container: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12 } },
-};
-
-const item: Variants = {
-  hidden: { opacity: 0, y: 32 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.55, ease: "easeOut" as const },
-  },
-};
-
-const textContainer: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
-};
-
-const textItem: Variants = {
-  hidden: { opacity: 0, y: 14 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: "easeOut" as const },
-  },
-};
-
-const skillIcons: Record<
-  FeaturedSkill["icon"],
-  ComponentType<{ className?: string }>
-> = {
+const skillIcons: Record<FeaturedSkill["icon"], React.ComponentType<{ className?: string }>> = {
   brain: CpuIcon,
   layers: LayersIcon,
   trend: TrendingUpIcon,
@@ -224,251 +30,178 @@ const skillIcons: Record<
 };
 
 const skillGradients: Record<FeaturedSkill["icon"], string> = {
-  brain: "from-indigo-500 to-violet-600",
+  brain: "from-indigo-500 to-violet-500",
   layers: "from-sky-500 to-cyan-500",
-  trend: "from-amber-500 to-orange-600",
-  shield: "from-rose-500 to-pink-600",
-  database: "from-teal-500 to-emerald-600",
+  trend: "from-amber-500 to-orange-500",
+  shield: "from-rose-500 to-pink-500",
+  database: "from-teal-500 to-emerald-500",
   server: "from-slate-600 to-slate-800",
-  layout: "from-fuchsia-500 to-purple-600",
-  cloud: "from-blue-500 to-indigo-600",
+  layout: "from-fuchsia-500 to-purple-500",
+  cloud: "from-blue-500 to-indigo-500",
 };
 
-function ImagePlaceholder({
-  label,
-  className,
-}: {
-  label: string;
-  className?: string;
-}) {
-  return (
-    <div
-      className={`flex aspect-video w-full flex-col items-center justify-center gap-2 bg-gradient-to-br from-slate-100 to-slate-200 ${className ?? ""}`}
-    >
-      <svg
-        className="h-8 w-8 text-slate-400"
-        fill="none"
-        viewBox="0 0 24 24"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        aria-hidden
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-        />
-      </svg>
-      <span className="text-xs font-medium text-slate-400">{label}</span>
-    </div>
-  );
-}
+const container: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.12 } },
+};
+
+const item: Variants = {
+  hidden: { opacity: 0, y: 32 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
+};
+
+const textContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+};
+
+const textItem: Variants = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
 
 function ProjectCard({ project }: { project: Project }) {
   const [expanded, setExpanded] = useState(false);
-  const fullText = [
-    project.description,
-    ...(project.contributions ?? []).map((contribution) =>
-      [contribution.title, contribution.detail, ...(contribution.points ?? [])].join(
-        " ",
-      ),
-    ),
-  ].join(" ");
-  const tooLong = fullText.length > 300;
 
   return (
     <motion.div
       variants={item}
-      className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-black/5 transition-shadow hover:shadow-lg"
+      className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7"
     >
-      {project.image ? (
-        <div className="relative aspect-video w-full">
-          <Image
+      {project.image && (
+        <div         className="mb-4 overflow-hidden rounded-xl ring-1 ring-black/5 dark:ring-white/10">
+          <img
             src={project.image}
             alt={project.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 640px"
-            className="object-cover"
+            className="h-48 w-full object-cover transition-transform duration-500 hover:scale-105"
           />
         </div>
-      ) : (
-        <ImagePlaceholder label="Project image coming soon" />
       )}
-      <div className="p-6 sm:p-7">
-        <h4 className="text-lg font-bold text-slate-900">{project.title}</h4>
 
-        {!expanded && tooLong ? (
-          <p className="mt-2 leading-relaxed text-slate-600">
-            {fullText.slice(0, 300)}…
-            <button
-              type="button"
-              onClick={() => setExpanded(true)}
-              className="ml-1 inline text-xs font-semibold text-indigo-600 hover:underline"
-            >
-              Lihat Selengkapnya
-            </button>
-          </p>
-        ) : (
-          <div className="space-y-4">
-            <p className="mt-2 leading-relaxed text-slate-600">
-              {project.description}
-            </p>
-            {project.contributions ? (
-              <ol className="space-y-3">
-                {project.contributions.map((contribution, idx) => (
-                  <li key={contribution.title} className="flex gap-3">
-                    <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-xs font-bold text-indigo-700">
-                      {idx + 1}
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">
-                        {contribution.title}
-                      </p>
-                      <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                        {contribution.detail}
-                      </p>
-                      {contribution.points ? (
-                        <ul className="mt-2 space-y-1.5">
-                          {contribution.points.map((point) => (
-                            <li
-                              key={point}
-                              className="flex gap-2 text-sm leading-relaxed text-slate-600"
-                            >
-                              <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-indigo-400" />
-                              <span>{point}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            ) : null}
-            {tooLong ? (
-              <button
-                type="button"
-                onClick={() => setExpanded(false)}
-                className="inline-flex items-center gap-1 text-sm font-semibold text-indigo-600 hover:underline"
-              >
-                Tutup
-                <span aria-hidden>▴</span>
-              </button>
-            ) : null}
-          </div>
-        )}
+      <h4 className="text-base font-bold text-slate-900 dark:text-white">{project.title}</h4>
+      <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+        {project.description}
+      </p>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {project.tech.map((tech) => (
-            <span
-              key={tech}
-              className="rounded-md bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700"
-            >
-              {tech}
-            </span>
-          ))}
-        </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {project.tech.map((tag) => (
+          <span
+            key={tag}
+            className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-black/5 dark:bg-slate-800 dark:text-slate-400 dark:ring-white/10"
+          >
+            {tag}
+          </span>
+        ))}
       </div>
+
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="mt-4 text-sm font-semibold text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors"
+      >
+        {expanded ? "Show Less ▴" : "Read Case Study ▾"}
+      </button>
+
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 space-y-5 border-t border-black/5 pt-5 dark:border-white/10">
+              <div>
+                <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                  Problem
+                </h5>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                  {project.problem}
+                </p>
+              </div>
+
+              <div>
+                <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                  Architecture &amp; Decisions
+                </h5>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                  {project.architecture}
+                </p>
+              </div>
+
+              {project.contributions && project.contributions.length > 0 && (
+                <div>
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                    Key Contributions
+                  </h5>
+                  <div className="mt-3 space-y-3">
+                    {project.contributions.map((c) => (
+                      <div
+                        key={c.title}
+                        className="rounded-xl bg-slate-50 p-4 ring-1 ring-black/5"
+                      >
+                        <p className="text-sm font-semibold text-slate-800">
+                          {c.title}
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                          {c.detail}
+                        </p>
+                        {c.points && c.points.length > 0 && (
+                          <ul className="mt-2 space-y-1">
+                            {c.points.map((pt) => (
+                              <li
+                                key={pt}
+                                className="flex gap-2 text-xs text-slate-500"
+                              >
+                                <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-indigo-400" />
+                                <span>{pt}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-600">
+                  Impact
+                </h5>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                  {project.impact}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
 export default function CVSection() {
-  const certHeadingRef = useRef<HTMLDivElement>(null);
-  const certAudioRef = useRef<HTMLAudioElement | null>(null);
-  const projectsRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = projectsRef.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          window.dispatchEvent(
-            new CustomEvent(entry.isIntersecting ? "projects-visible" : "projects-hidden"),
-          );
-        }
-      },
-      { threshold: 0.15 },
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  const [certVisible, setCertVisible] = useState(false);
+  const certHeadingRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const el = certHeadingRef.current;
     if (!el) return;
-
-    const audio = new Audio(
-      "/audio/Queen - We Are The Champions (Official Video Remastered).mp3",
-    );
-    audio.preload = "auto";
-    audio.loop = false;
-    audio.currentTime = 30;
-    certAudioRef.current = audio;
-
-    let hasEnded = false;
-
-    const handleEnded = () => {
-      hasEnded = true;
-    };
-    audio.addEventListener("ended", handleEnded);
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            if (hasEnded) {
-              hasEnded = false;
-              audio.currentTime = 30;
-            }
-            if (!isMuted()) {
-              audio.currentTime = 30;
-              audio.play().catch(() => {});
-              window.dispatchEvent(new CustomEvent("cert-audio-start"));
-            }
-          } else {
-            audio.pause();
-            audio.currentTime = 30;
-            hasEnded = false;
-          }
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !certVisible) {
+          setCertVisible(true);
         }
       },
       { threshold: 0.3 },
     );
-
-    observer.observe(el);
-
-    return () => {
-      observer.disconnect();
-      audio.removeEventListener("ended", handleEnded);
-      audio.pause();
-      audio.src = "";
-      certAudioRef.current = null;
-    };
-  }, []);
-
-  const handleMuteChange = useCallback((e: Event) => {
-    const audio = certAudioRef.current;
-    if (!audio) return;
-    const detail = (e as CustomEvent<{ muted: boolean }>).detail;
-    if (detail.muted) {
-      audio.pause();
-    } else {
-      audio.currentTime = 30;
-      audio.play().catch(() => {});
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener("sound-toggle", handleMuteChange);
-    return () => window.removeEventListener("sound-toggle", handleMuteChange);
-  }, [handleMuteChange]);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [certVisible]);
 
   return (
-    <section id="cv" className="scroll-mt-8 bg-dot-pattern bg-slate-50 px-4 py-20 sm:py-24">
+    <section id="cv" className="scroll-mt-8 bg-dot-pattern bg-slate-50 px-4 py-20 sm:py-24 dark:bg-slate-950">
       <motion.div
         variants={container}
         initial="hidden"
@@ -476,18 +209,22 @@ export default function CVSection() {
         viewport={{ once: true, amount: 0.05 }}
         className="mx-auto max-w-6xl"
       >
+        {/* ── About + Education ── */}
         <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
           <motion.div
             variants={item}
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7"
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7"
           >
             <motion.div variants={textContainer}>
-              <motion.h3 variants={textItem} className="text-lg font-bold text-slate-900">
+              <motion.h3
+                variants={textItem}
+                className="text-lg font-bold text-slate-900 dark:text-white"
+              >
                 About
               </motion.h3>
               <motion.p
                 variants={textItem}
-                className="mt-3 leading-relaxed text-slate-600 whitespace-pre-line"
+                className="mt-3 leading-relaxed text-slate-600 dark:text-slate-400"
               >
                 {cvData.summary}
               </motion.p>
@@ -496,103 +233,98 @@ export default function CVSection() {
 
           <motion.div
             variants={item}
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7"
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7"
           >
-            <NowPlaying />
-            <div className="mt-5 border-t border-black/5 pt-5">
-              <h4 className="text-sm font-bold text-slate-900">Education</h4>
+            <motion.div variants={textContainer}>
+              <motion.h3
+                variants={textItem}
+                className="text-lg font-bold text-slate-900 dark:text-white"
+              >
+                Education
+              </motion.h3>
               <div className="mt-3 space-y-3">
-                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
-                  <p className="text-sm font-semibold text-slate-800">Politeknik Negeri Indramayu</p>
-                  <p className="text-xs text-slate-500">S1 Terapan Rekayasa Perangkat Lunak</p>
-                  <p className="mt-1 text-[11px] text-slate-400">2023 — 2027</p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
-                  <p className="text-sm font-semibold text-slate-800">SDN Jatisawit Lor 3</p>
-                  <p className="mt-0.5 text-[11px] text-slate-400">2010 — 2016</p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
-                  <p className="text-sm font-semibold text-slate-800">SMPN 3 Jatibarang</p>
-                  <p className="mt-0.5 text-[11px] text-slate-400">2016 — 2019</p>
-                </div>
-                <div className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5">
-                  <p className="text-sm font-semibold text-slate-800">SMK PONPES CadangPinggan</p>
-                  <p className="mt-0.5 text-[11px] text-slate-400">2019 — 2022</p>
-                </div>
+                {cvData.education.map((edu) => (
+                  <div
+                    key={edu.school}
+                    className="rounded-xl bg-slate-50 p-3 ring-1 ring-black/5 dark:bg-slate-800 dark:ring-white/10"
+                  >
+                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                      {edu.school}
+                    </p>
+                    {edu.degree && (
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{edu.degree}</p>
+                    )}
+                    <p className="mt-1 text-[11px] text-slate-400">
+                      {edu.year}
+                    </p>
+                  </div>
+                ))}
               </div>
-            </div>
+            </motion.div>
           </motion.div>
+        </div>
 
+        {/* ── Projects (Case Study Accordion) ── */}
+        <div id="projects">
           <motion.div
             variants={item}
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7 md:col-span-2"
+            className="mb-6 mt-14 flex items-end justify-between gap-4 sm:mt-16"
+          >
+            <motion.h3
+              variants={textItem}
+              className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl"
+            >
+              Featured Projects
+            </motion.h3>
+          </motion.div>
+
+          <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
+            {cvData.projects.map((project) => (
+              <ProjectCard key={project.title} project={project} />
+            ))}
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <motion.a
+              variants={textItem}
+              href={cvData.github}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
+              </svg>
+              More Projects on GitHub →
+            </motion.a>
+            <motion.a
+              variants={textItem}
+              href="https://www.instagram.com/s/aGlnaGxpZ2h0OjE4MTYzNDkxNzc4NDA2MzI5?igsh=MTFpbXh5c2ZtM3hkdQ%3D%3D"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 px-5 py-2 text-sm font-semibold text-white transition-colors hover:from-purple-700 hover:to-pink-600"
+            >
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+              </svg>
+              More Projects on Instagram →
+            </motion.a>
+          </div>
+        </div>
+
+        {/* ── Experience + Organizations (Side by Side) ── */}
+        <div id="experience" className="grid gap-5 sm:gap-6 md:grid-cols-2">
+          {/* Experience */}
+          <motion.div
+            variants={item}
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7"
           >
             <motion.div variants={textContainer}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <motion.h3
                   variants={textItem}
-                  className="text-lg font-bold text-slate-900"
+                  className="text-lg font-bold text-slate-900 dark:text-white"
                 >
-                  Featured Skills
-                </motion.h3>
-                <motion.a
-                  variants={textItem}
-                  href={cvData.linkedinSkills}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[#0a66c2] px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#084d96]"
-                >
-                  <LinkedInIcon className="h-3.5 w-3.5" />
-                  View All on LinkedIn
-                </motion.a>
-              </div>
-              <motion.div
-                variants={textItem}
-                className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
-              >
-                {cvData.featuredSkills.map((skill) => {
-                  const Icon = skillIcons[skill.icon];
-                  return (
-                    <motion.div
-                      key={skill.title}
-                      variants={textItem}
-                      className="group rounded-2xl bg-slate-50 p-4 ring-1 ring-black/5 transition-all hover:-translate-y-1 hover:shadow-md hover:ring-indigo-100"
-                    >
-                      <span
-                        className={`inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${skillGradients[skill.icon]} text-white shadow-sm transition-transform group-hover:scale-110`}
-                      >
-                        <Icon className="h-5 w-5" />
-                      </span>
-                      <h4 className="mt-3 text-sm font-bold text-slate-900">
-                        {skill.title}
-                      </h4>
-                      <p className="mt-0.5 text-xs text-slate-500">
-                        {skill.subtitle}
-                      </p>
-                      <div className="mt-3 flex flex-wrap gap-1.5">
-                        {skill.skills.map((tag) => (
-                          <span
-                            key={tag}
-                            className="rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-black/5"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </motion.div>
-            </motion.div>
-          </motion.div>
-
-          <motion.div
-            variants={item}
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7 md:col-span-2"
-          >
-            <motion.div variants={textContainer}>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <motion.h3 variants={textItem} className="text-lg font-bold text-slate-900">
                   Experience
                 </motion.h3>
                 <motion.a
@@ -611,18 +343,18 @@ export default function CVSection() {
                 className="mt-4 flex flex-wrap items-baseline justify-between gap-2"
               >
                 <div>
-                  <p className="font-semibold text-slate-800">
+                  <p className="font-semibold text-slate-800 dark:text-slate-200">
                     {cvData.experience.role}
                   </p>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
                     {cvData.experience.company}
                   </p>
                 </div>
-                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                   {cvData.experience.duration}
                 </span>
               </motion.div>
-              <ul className="mt-4 space-y-2 text-slate-600">
+              <ul className="mt-4 space-y-2 text-slate-600 dark:text-slate-400">
                 {cvData.experience.points.map((point) => (
                   <motion.li
                     key={point}
@@ -630,22 +362,23 @@ export default function CVSection() {
                     className="flex gap-2.5"
                   >
                     <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-indigo-500" />
-                    <span className="leading-relaxed">{point}</span>
+                    <span className="text-sm leading-relaxed">{point}</span>
                   </motion.li>
                 ))}
               </ul>
             </motion.div>
           </motion.div>
 
+          {/* Organizations */}
           <motion.div
             variants={item}
-            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 sm:p-7 md:col-span-2"
+            className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7"
           >
             <motion.div variants={textContainer}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <motion.h3
                   variants={textItem}
-                  className="text-lg font-bold text-slate-900"
+                  className="text-lg font-bold text-slate-900 dark:text-white"
                 >
                   Organizations &amp; Leadership
                 </motion.h3>
@@ -664,21 +397,23 @@ export default function CVSection() {
                 {cvData.organizations.map((org) => (
                   <div
                     key={`${org.role}-${org.organization}`}
-                    className="rounded-xl bg-slate-50 p-4 ring-1 ring-black/5"
+                    className="rounded-xl bg-slate-50 p-4 ring-1 ring-black/5 dark:bg-slate-800 dark:ring-white/10"
                   >
                     <div className="flex flex-wrap items-baseline justify-between gap-2">
                       <div>
-                        <p className="font-semibold text-slate-800">{org.role}</p>
-                        <p className="text-sm text-slate-500">
+                        <p className="font-semibold text-slate-800 dark:text-slate-200">
+                          {org.role}
+                        </p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
                           {org.organization}
                         </p>
                       </div>
-                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-400">
                         {org.duration}
                       </span>
                     </div>
                     {org.description ? (
-                      <p className="mt-2 text-sm leading-relaxed text-slate-600">
+                      <p className="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
                         {org.description}
                       </p>
                     ) : null}
@@ -689,37 +424,72 @@ export default function CVSection() {
           </motion.div>
         </div>
 
-        <div ref={projectsRef}>
-          <motion.div
-            variants={item}
-            className="mb-6 mt-14 flex items-end justify-between gap-4 sm:mt-16"
-          >
-            <motion.h3
+        {/* ── Featured Skills ── */}
+        <motion.div
+          id="skills"
+          variants={item}
+          className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-black/5 dark:bg-slate-900 dark:ring-white/10 sm:p-7 md:col-span-2"
+        >
+          <motion.div variants={textContainer}>
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <motion.h3
+                variants={textItem}
+                className="text-lg font-bold text-slate-900 dark:text-white"
+              >
+                Technical Skills
+              </motion.h3>
+              <motion.a
+                variants={textItem}
+                href={cvData.linkedinSkills}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#0a66c2] px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[#084d96]"
+              >
+                <LinkedInIcon className="h-3.5 w-3.5" />
+                View All on LinkedIn
+              </motion.a>
+            </div>
+            <motion.div
               variants={textItem}
-              className="text-xl font-bold text-slate-900 sm:text-2xl"
+              className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
             >
-              Projects
-            </motion.h3>
-            <motion.a
-              variants={textItem}
-              href="https://www.instagram.com/s/aGlnaGxpZ2h0OjE4MTYzNDkxNzc4NDA2MzI5?igsh=MTFpbXh5c2ZtM3hkdQ=="
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-fuchsia-500 via-pink-500 to-amber-500 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-all hover:shadow-md hover:brightness-110"
-            >
-              <InstagramIcon className="h-4 w-4" />
-              <span className="hidden sm:inline">Project di Instagram</span>
-              <span className="sm:hidden">Instagram</span>
-            </motion.a>
+              {cvData.featuredSkills.map((skill) => {
+                const Icon = skillIcons[skill.icon];
+                return (
+                  <motion.div
+                    key={skill.title}
+                    variants={textItem}
+                    className="group rounded-2xl bg-slate-50 p-4 ring-1 ring-black/5 transition-all hover:-translate-y-1 hover:shadow-md hover:ring-indigo-100 dark:bg-slate-800 dark:ring-white/10 dark:hover:ring-indigo-500/30"
+                  >
+                    <span
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${skillGradients[skill.icon]} text-white shadow-sm transition-transform group-hover:scale-110`}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <h4 className="mt-3 text-sm font-bold text-slate-900 dark:text-white">
+                      {skill.title}
+                    </h4>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                      {skill.subtitle}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-1.5">
+                      {skill.skills.map((tag) => (
+                        <span
+                          key={tag}
+                          className="rounded-md bg-white px-2 py-0.5 text-[11px] font-medium text-slate-600 ring-1 ring-black/5 dark:bg-slate-700 dark:text-slate-300 dark:ring-white/10"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
           </motion.div>
+        </motion.div>
 
-          <div className="grid gap-5 sm:gap-6 md:grid-cols-2">
-            {cvData.projects.map((project) => (
-              <ProjectCard key={project.title} project={project} />
-            ))}
-          </div>
-        </div>
-
+        {/* ── Certificates ── */}
         <div ref={certHeadingRef}>
           <motion.div
             variants={item}
@@ -727,13 +497,13 @@ export default function CVSection() {
           >
             <motion.h3
               variants={textItem}
-              className="text-xl font-bold text-slate-900 sm:text-2xl"
+              className="text-xl font-bold text-slate-900 dark:text-white sm:text-2xl"
             >
               Certificates
             </motion.h3>
             <motion.p
               variants={textItem}
-              className="hidden text-sm text-slate-500 sm:block"
+              className="hidden text-sm text-slate-500 dark:text-slate-400 sm:block"
             >
               Courses &amp; certifications
             </motion.p>
